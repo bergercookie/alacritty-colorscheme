@@ -4,24 +4,29 @@ from pynvim import attach
 
 
 def template_vimrc_background(colorscheme: str) -> str:
-    command = (
-        f"if !exists('g:colors_name') || g:colors_name != '{colorscheme}'\n"
-        f"  colorscheme {colorscheme}\n"
-        "endif")
-    return command
+    command_l = [
+        f"if !exists('g:colors_name') || g:colors_name != '{colorscheme}'",
+        f"  colorscheme {colorscheme}",
+    ]
+
+    # TODO Can I enable it only if airline is installed?
+    command_l.append(f'  let g:airline_theme="{colorscheme}"'.replace("-", "_"))
+
+    command_l.append("endif")
+    return "\n".join(command_l)
 
 
 def _get_all_instances():
     instances = []
 
-    tmpdir = environ.get('TMPDIR', '/tmp')
+    tmpdir = environ.get("TMPDIR", "/tmp")
 
-    folders = [f for f in listdir(tmpdir) if f.startswith('nvim') and isdir(f)]
+    folders = [f for f in listdir(tmpdir) if f.startswith("nvim") and isdir(f)]
     for folder in folders:
         try:
             dc = listdir(join(tmpdir, folder))
-            if '0' in dc:
-                instances.append(join(tmpdir, folder, '0'))
+            if "0" in dc:
+                instances.append(join(tmpdir, folder, "0"))
         except PermissionError:
             # cannot open directories owned by other users e.g., /tmp/nvim.root
             continue
@@ -30,8 +35,8 @@ def _get_all_instances():
 
 
 def _reload(instance, colorscheme_file):
-    nvim = attach('socket', path=instance)
-    nvim.command(f'source {colorscheme_file}')
+    nvim = attach("socket", path=instance)
+    nvim.command(f"source {colorscheme_file}")
 
 
 def reload_neovim_sessions(colorscheme_file):
@@ -40,4 +45,4 @@ def reload_neovim_sessions(colorscheme_file):
         for instance in instances:
             _reload(instance, colorscheme_file)
     except Exception:
-        print('Failed loading colorscheme to nvim')
+        print("Failed loading colorscheme to nvim")
